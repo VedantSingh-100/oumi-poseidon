@@ -209,37 +209,37 @@ class ModelParams(BaseParams):
         """Finalizes and validates final config params."""
         # If the user didn't specify a LoRA adapter, check to see if the dir/repo
         # specified by `model_name` contains an adapter, and set `adapter_name` if so.
-        if self.adapter_model is None:
-            # This is a HF utility function that tries to find `adapter_config.json`
-            # given either a local dir or a HF Hub repo id. In the latter case, the repo
-            # will be downloaded from HF Hub if it's not already cached.
-            adapter_config_file = find_adapter_config_file(self.model_name)
-            # If this check fails, it means this is not a LoRA model.
-            if adapter_config_file:
-                # If `model_name` is a local dir, this should be the same.
-                # If it's a HF Hub repo, this should be the path to the cached repo.
-                adapter_dir = Path(adapter_config_file).parent
-                self.adapter_model = self.model_name
-                logger.info(
-                    f"Found LoRA adapter at {adapter_dir}, "
-                    "setting `adapter_model` to `model_name`."
-                )
-                # If `model_name` specifies a LoRA adapter dir without the base model
-                # present, set it to the base model name found in the adapter config,
-                # if present. Error otherwise.
-                if len(list(adapter_dir.glob("config.json"))) == 0:
-                    with open(adapter_config_file) as f:
-                        adapter_config = json.load(f)
-                    model_name = adapter_config.get("base_model_name_or_path")
-                    if not model_name:
-                        raise ValueError(
-                            "`model_name` specifies an adapter model only,"
-                            " but the base model could not be found!"
-                        )
-                    self.model_name = model_name
-                    logger.info(
-                        f"Setting `model_name` to {model_name} found in adapter config."
-                    )
+        # if self.adapter_model is None:
+        #     # This is a HF utility function that tries to find `adapter_config.json`
+        #     # given either a local dir or a HF Hub repo id. In the latter case, the repo
+        #     # will be downloaded from HF Hub if it's not already cached.
+        #     adapter_config_file = find_adapter_config_file(self.model_name)
+        #     # If this check fails, it means this is not a LoRA model.
+        #     if adapter_config_file:
+        #         # If `model_name` is a local dir, this should be the same.
+        #         # If it's a HF Hub repo, this should be the path to the cached repo.
+        #         adapter_dir = Path(adapter_config_file).parent
+        #         self.adapter_model = self.model_name
+        #         logger.info(
+        #             f"Found LoRA adapter at {adapter_dir}, "
+        #             "setting `adapter_model` to `model_name`."
+        #         )
+        #         # If `model_name` specifies a LoRA adapter dir without the base model
+        #         # present, set it to the base model name found in the adapter config,
+        #         # if present. Error otherwise.
+        #         if len(list(adapter_dir.glob("config.json"))) == 0:
+        #             with open(adapter_config_file) as f:
+        #                 adapter_config = json.load(f)
+        #             model_name = adapter_config.get("base_model_name_or_path")
+        #             if not model_name:
+        #                 raise ValueError(
+        #                     "`model_name` specifies an adapter model only,"
+        #                     " but the base model could not be found!"
+        #                 )
+        #             self.model_name = model_name
+        #             logger.info(
+        #                 f"Setting `model_name` to {model_name} found in adapter config."
+        #             )
 
         # Check if flash-attention-2 is requested and supported
         if (self.attn_implementation == "flash_attention_2") and (

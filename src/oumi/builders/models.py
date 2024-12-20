@@ -118,21 +118,21 @@ def build_oumi_model(
 ) -> nn.Module:
     """Builds a custom model from our Oumi registry."""
     model_class = REGISTRY[model_params.model_name, RegistryType.MODEL]
-    model = model_class(**model_params.model_kwargs)
+    model = model_class(model_params=model_params, **model_params.model_kwargs)
 
-    if model_params.load_pretrained_weights:
-        raise NotImplementedError
+    # if model_params.load_pretrained_weights:
+    #     raise NotImplementedError
 
-    if peft_params and peft_params.q_lora:
-        raise NotImplementedError
+    # if peft_params and peft_params.q_lora:
+    #     raise NotImplementedError
 
-    if model_params.adapter_model is not None:
-        raise NotImplementedError
+    # if model_params.adapter_model is not None:
+    #     raise NotImplementedError
 
     dtype = model_params.torch_dtype
     model = model.to(dtype=dtype)
     # Needed for MFUTrainerCallback
-    model.dtype = dtype
+    # model.dtype = dtype
     return model
 
 
@@ -254,6 +254,9 @@ def is_image_text_llm_using_model_name(
 
 def is_image_text_llm(model_params: ModelParams) -> bool:
     """Determines whether the model is a basic image+text LLM."""
+    # For now, assume that custom models are not image+text LLMs.
+    if REGISTRY.contains(name=model_params.model_name, type=RegistryType.MODEL):
+        return False
     return is_image_text_llm_using_model_name(
         model_params.model_name, model_params.trust_remote_code
     )
@@ -332,10 +335,9 @@ def build_cambrian_model(
 
     return model
 
-
 def build_tokenizer(
     model_params: ModelParams,
-) -> Union[transformers.PreTrainedTokenizer, transformers.PreTrainedTokenizerFast]:
+) -> Union[transformers.PreTrainedTokenizer, transformers.PreTrainedTokenizerFast, transformers.AutoProcessor]:
     """Builds and returns a tokenizer based on the provided Oumi configuration.
 
     Args:
@@ -352,11 +354,20 @@ def build_tokenizer(
         tokenizer_name = model_params.model_name
 
     # Download and build the tokenizer from the HuggingFace Hub.
-    tokenizer = transformers.AutoTokenizer.from_pretrained(
-        tokenizer_name,
-        trust_remote_code=model_params.trust_remote_code,
-        **model_params.tokenizer_kwargs,
-    )
+    if "poseidon_pde" in model_params.model_name:
+        print("Inside the camlab-ethz function mentioned")
+        return transformers.AutoImageProcessor.from_pretrained(
+            "microsoft/swinv2-tiny-patch4-window8-256",
+            trust_remote_code=model_params.trust_remote_code,
+            **model_params.tokenizer_kwargs,
+        )
+    else:
+        print("Inside the autotokenizer function")
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            tokenizer_name,
+            trust_remote_code=model_params.trust_remote_code,
+            **model_params.tokenizer_kwargs,
+        )
 
     if model_params.tokenizer_pad_token:
         tokenizer.add_special_tokens(

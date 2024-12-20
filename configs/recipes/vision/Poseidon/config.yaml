@@ -1,0 +1,44 @@
+model:
+  model_name: "poseidon_pde" # This should match the registry name in your custom model registration.
+  torch_dtype_str: "float32" # Use appropriate dtype; update to "bfloat16" or "float16" for mixed precision.
+  trust_remote_code: True # Update if you want to allow loading external code.
+
+data:
+  train:
+    target_col: "output_data" # Specify the output column for supervised learning.
+    datasets:
+      - dataset_name: "pde_ce_rp"
+        split: "train"
+        shuffle: True
+        seed: 42
+  validation:
+    datasets:
+      - dataset_name: "pde_ce_rp"
+        split: "validation"
+
+training:
+  output_dir: "output/poseidon_finetuned"
+  enable_gradient_checkpointing: True
+  per_device_train_batch_size: 2 # Adjust based on GPU memory.
+  gradient_accumulation_steps: 8
+  max_steps: 1000
+
+  gradient_checkpointing_kwargs:
+    use_reentrant: True
+  ddp_find_unused_parameters: True
+  empty_device_cache_steps: 2
+  compile: False
+
+  optimizer: "adamw_torch_fused"
+  learning_rate: 5e-4
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  lr_scheduler_type: "linear"
+
+  logging_steps: 10
+  save_steps: 100
+  dataloader_num_workers: 4
+  dataloader_prefetch_factor: 2
+  include_performance_metrics: True
+  log_model_summary: True
+  enable_wandb: False # Enable if you want to use Weights & Biases for logging.

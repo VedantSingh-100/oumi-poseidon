@@ -92,11 +92,14 @@ def main() -> None:
         config_path, arg_list, logger=logger
     )
     config.finalize_and_validate()
+    print("Configuration finalise is done")
 
     limit_per_process_memory()
     set_random_seeds(config.training.seed)
 
     # Run training
+    print("Training started")
+    print(f"Model name in config: {config.model.model_name}")
     train(config)
 
     device_cleanup()
@@ -199,6 +202,7 @@ def train(config: TrainingConfig, **kwargs) -> None:
 
     _create_training_dirs(config)
     _log_training_info(config)
+    print("Logging part is done")
 
     # Configure logging to file
     log_dir = Path(config.training.output_dir) / "logs"
@@ -207,6 +211,7 @@ def train(config: TrainingConfig, **kwargs) -> None:
     telemetry_dir = config.training.telemetry_dir
 
     config = _finalize_training_config(config)
+    print("Finalising the config is done")
 
     if is_local_process_zero():
         logger.info(f"TrainingConfig: {pformat(config)}")
@@ -230,7 +235,7 @@ def train(config: TrainingConfig, **kwargs) -> None:
         logger.info(
             f"Set Accelerate environment variables for FSDP: {accelerate_env_vars}"
         )
-
+    print("Training Started")
     # Initialize model and tokenizer.
     tokenizer = build_tokenizer(config.model)
     processor: Optional[BaseProcessor] = None
